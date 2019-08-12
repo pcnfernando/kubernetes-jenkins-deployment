@@ -1,0 +1,78 @@
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   name: push-application-docker-images
+#   annotations:
+#     "helm.sh/hook": "pre-install"
+#     "helm.sh/hook-delete-policy": "before-hook-creation"
+#     "helm.sh/hook-weight": "101"
+# spec:
+#   template:
+#     spec:
+#       containers:
+#       - name: push-application-docker-images
+#         image: docker
+#         command: ["/bin/sh"]
+#         args: ["-c", "sh /scripts/run.sh"]
+#         env:
+#         - name: WSO2_USERNAME
+#           valueFrom:
+#             secretKeyRef:
+#               name: wso2-credentials
+#               key: username
+#         - name: WSO2_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: wso2-credentials
+#               key: password
+#         - name: REGISTRY_SERVER
+#           valueFrom:
+#             secretKeyRef:
+#               name: registry-credentials-pod
+#               key: server
+#         - name: REGISTRY_USERNAME
+#           valueFrom:
+#             secretKeyRef:
+#               name: registry-credentials-pod
+#               key: username
+#         - name: REGISTRY_PASSWORD
+#           valueFrom:
+#             secretKeyRef:
+#               name: registry-credentials-pod
+#               key: password
+#         volumeMounts: 
+#         - name: docker
+#           mountPath: /var/run/docker.sock
+#         - name: push-application-docker-images-conf
+#           mountPath: /scripts
+#       restartPolicy: Never
+#       volumes:
+#       - name: docker
+#         hostPath:
+#           path: /var/run/docker.sock
+#       - name: push-application-docker-images-conf
+#         configMap:
+#           name: push-application-docker-images-conf
+
+# ---
+
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: push-application-docker-images-conf
+#   annotations:
+#     "helm.sh/hook": "pre-install"
+#     "helm.sh/hook-delete-policy": "before-hook-creation"
+#     "helm.sh/hook-weight": "100"
+# data:
+#   run.sh: |-
+#     docker login docker.wso2.com -u $WSO2_USERNAME -p $WSO2_PASSWORD
+#     docker login $REGISTRY_SERVER -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD
+#     {{- range .Values.applications }}
+#     {{- $application := . }}
+#     {{- range $image := .images }}
+#         docker pull {{ $image.wso2Image }}
+#         docker tag {{ $image.wso2Image }} {{ $image.organization }}/{{ $image.repository }}
+#         docker push {{ $image.organization }}/{{ $image.repository }}
+#     {{- end}}
+#     {{- end}}

@@ -1,0 +1,216 @@
+# Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-casc-conf
+data:
+  global-config.yaml: |-
+    unclassified:
+      globalLibraries:
+        libraries:
+          - name: "wso2-jenkins-shared-lib"
+            defaultVersion: master
+            retriever:
+              modernSCM:
+                scm:
+                  git:
+                    remote: "https://github.com/Aaquiff/jenkins-shared-lib"
+    credentials:
+      system:
+        domainCredentials:
+          - credentials:
+              - usernamePassword:
+                  scope: GLOBAL
+                  id: github_credentials
+                  username: ${GITHUB_USERNAME}
+                  password: ${GITHUB_PASSWORD}
+    jenkins:
+      systemMessage: "WSO2 CI/CD Setup"
+      securityRealm:
+        local:
+          allowsSignup: false
+          users:
+            - id: "{{ .Values.jenkins.username }}"
+              password: "{{ .Values.jenkins.password }}"
+      authorizationStrategy: loggedInUsersCanDoAnything
+    jobs:
+      {{- $namespace := .Release.Namespace }}
+      {{- range .Values.applications }}
+      {{- $application := . }}
+      - script: >
+          folder("{{ $application.name }}")
+      {{- range $index, $image := .images }}
+      - script: >
+          job("{{ $application.name }}/{{ $image.repository }}-image") {
+            description()
+            logRotator(10)
+            keepDependencies(false)
+            disabled(false)
+            concurrentBuild(true)
+            scm {
+                git {
+                    remote {
+                        name('docker-repo')
+                        url('{{ $image.gitRepo }}')
+                        credentials('github_credentials')
+                    }
+                }
+            }
+            triggers {
+              cron('@daily')
+            }
+            steps {
+              shell("""
+                timestamp() {
+                  date +\"%Y%m%d%H%M%S\"
+                }
+
+                # Set WSO2 Base Image
+                sed -i "s|<BASE>|{{ $image.wso2Image }}|" Dockerfile
+
+                IMAGE_NAME={{ $image.organization }}/{{ $image.repository }}:`timestamp`
+                docker login docker.wso2.com -u \$WSO2_USERNAME -p \$WSO2_PASSWORD
+                docker build -t \$IMAGE_NAME .
+                docker login -u \$REGISTRY_USERNAME -p \$REGISTRY_PASSWORD
+                docker push \$IMAGE_NAME""")
+            }
+          }
+      - script: >
+          job("{{ $application.name }}/{{ $image.repository }}-artifacts") {
+            description()
+            logRotator(10)
+            keepDependencies(false)
+            disabled(false)
+            concurrentBuild(true)
+            scm {
+                git {
+                    remote {
+                        name('docker-repo')
+                        url('{{ $image.gitRepo }}')
+                        credentials('github_credentials')
+                    }
+                }
+            }
+            triggers {
+                scm('* * * * *')
+            }
+            steps {
+              shell("""
+                TAG=`docker images {{ $image.organization }}/{{ $image.repository }} --format '{{ "{{ .Tag }}" }}' | sort -nrk1 | head -1`
+                if [ -z "\$TAG" ]
+                then
+                  TAG=`date +\"%Y%m%d%H%M%S\"`
+                  sed -i "s|<BASE>|{{ $image.wso2Image }}|" Dockerfile
+                else
+                  sed -i "s|<BASE>|{{ $image.organization }}/{{ $image.repository }}:\$TAG|" Dockerfile
+                fi
+                #TAG=`docker images {{ $image.organization }}/{{ $image.repository }} --format '{{ "{{ .Tag }}" }}' | sort -nrk1 | head -1`
+                #sed -i "s|<BASE>|{{ $image.organization }}/{{ $image.repository }}:\$TAG|" Dockerfile
+                docker build -t {{ $image.organization }}/{{ $image.repository }}:\$TAG .
+                docker login -u \$REGISTRY_USERNAME -p \$REGISTRY_PASSWORD
+                docker push {{ $image.organization }}/{{ $image.repository }}:\$TAG""")
+            }
+          }
+      {{- end }}
+      - script: >
+          job("{{ .name }}/chart") {
+            description()
+            logRotator(10)
+            keepDependencies(false)
+            disabled(false)
+            concurrentBuild(true)
+            scm {
+                git {
+                    remote {
+                        name('chart-repo')
+                        url('{{ .chart.repo }}')
+                        credentials('github_credentials')
+                    }
+                }
+            }
+            triggers {
+                scm('* * * * *')
+            }
+            steps {
+              shell(
+              """
+
+              removeTests() {
+                  for f in *
+                  do
+                      # Extract chart and get name
+                      if [ -d \$f ]; then 
+                          echo "\$f is a directory"
+                          CHART_NAME=\$f
+                      else
+                          echo "\$f is not a directory"
+                          tar -zxf \$f
+                          CHART_NAME=`tar -tzf \$f | head -1 | cut -f1 -d"/"`
+                          rm -r \$f
+                      fi
+
+                      # Remove tests folder
+                      if [ -d \$CHART_NAME/templates/tests ]; then
+                          echo "Removing \$CHART_NAME/templates/tests"
+                          rm -r \$CHART_NAME/templates/tests
+                      fi
+
+                      if [ -d \$CHART_NAME/charts ]; then
+                          echo "Dependencies for chart \$CHART_NAME"
+                          cd \$CHART_NAME/charts && 
+                          removeTests 
+                          cd ../../
+                      else
+                          echo "No dependencies for chart \$CHART_NAME"
+                      fi
+                  done;
+              }
+
+              cat {{ .chart.name }}/values-dev.yaml | base64 >test
+              VALUES_DEV_CONTENT=`tr -d '\\n' < test`
+
+              cat {{ .chart.name }}/values-staging.yaml | base64 >test
+              VALUES_STAGING_CONTENT=`tr -d '\\n' < test`
+
+              cat {{ .chart.name }}/values-prod.yaml | base64 >test
+              VALUES_PROD_CONTENT=`tr -d '\\n' < test`
+
+              rm {{ .chart.name }}-*.tgz || ls
+
+              {{- if .chart.customChart }}
+              helm package {{ .chart.name }} -u
+              {{- else }}
+              helm fetch wso2/{{ .chart.name }} --version {{ .chart.version }}
+              {{- end }}
+
+              tar -zxf {{ .chart.name }}-*.tgz
+              cd {{ .chart.name }}/charts
+              removeTests
+              cd ../../
+              helm package {{ .chart.name }}
+
+              CHART_NAME=`find {{ .chart.name }}-*.tgz`
+              cat \$CHART_NAME | base64 > test
+              CHART_CONTENT=`tr -d '\\n' < test`
+
+              echo '{"artifacts": [ {"type": "embedded/base64","name": "'"\$CHART_NAME"'", "reference": "'"\$CHART_CONTENT"'" }, {"type": "embedded/base64","name": "values-dev.yaml","reference": "'"\$VALUES_DEV_CONTENT"'" }, {"type": "embedded/base64","name": "values-prod.yaml","reference": "'"\$VALUES_PROD_CONTENT"'" }, {"type": "embedded/base64","name": "values-staging.yaml","reference": "'"\$VALUES_STAGING_CONTENT"'" } ]}' > data.json
+
+              curl -X POST --header "Content-Type: application/json" --request POST --data @data.json http://spin-gate.{{ $namespace }}.svc.cluster.local:8084/webhooks/webhook/chart
+              """)
+
+            }
+          }
+      {{- end }}

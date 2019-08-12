@@ -1,0 +1,46 @@
+# kind: PersistentVolume
+# apiVersion: v1
+# metadata:
+#   name: jenkins
+#   labels:
+#     purpose: local
+# spec:
+#   storageClassName: manual
+#   capacity:
+#     storage: 10Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   hostPath:
+#     path: "/mnt/jenkins"
+
+# ---
+
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: jenkins-claim
+# spec:
+#   spec:
+#   storageClassName: manual
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   # selector:
+#   #   matchLabels:
+#   #     purpose: jenkins-shared-deployment
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-claim
+  labels:
+    app: jenkins
+    tier: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

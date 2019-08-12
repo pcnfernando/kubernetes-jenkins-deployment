@@ -1,0 +1,41 @@
+# Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kube-conf
+type: Opaque
+stringData:
+  config: |-
+    apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURERENDQWZTZ0F3SUJBZ0lSQU9EZGpFMWJ6d0M2a1NyUzRvSTBZRVl3RFFZSktvWklodmNOQVFFTEJRQXcKTHpFdE1Dc0dBMVVFQXhNa01UWXdNak5sTmpjdE1XRTVOQzAwTURSa0xXRTRNR0l0WWpZMU16RTNOR000TURnMwpNQjRYRFRFNU1ERXpNREF6TVRBeE0xb1hEVEkwTURFeU9UQTBNVEF4TTFvd0x6RXRNQ3NHQTFVRUF4TWtNVFl3Ck1qTmxOamN0TVdFNU5DMDBNRFJrTFdFNE1HSXRZalkxTXpFM05HTTRNRGczTUlJQklqQU5CZ2txaGtpRzl3MEIKQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBeWNodng4R3BFcUFTaEZTTDhaTE9XZTZTclBTL1Vhd2w2bW5MZ3lrUwpJR2xoWUFrZ2tsSmtVcGREdzZMeTVkM1dvYk1zckI3cFJFUWtXOUdxN1JvclBUdmtJazZiN2tWMEpvaXVmK1NMCjR2VHV0VElzQ2ZLRGNJRjVuZU1mTWFMWjE1UGRWUit6bHB1OXNLQ29uM2QvdTJrRFNOTlJsdElNcUZybHJPekwKVDZXcjJYVUVzdnYxOE5YVlIxL0hvakRWTE9YWmQ4T0VybDROT0tZbnExVmdnK0gwRVQwNDRKYnJwVGxQN3h2bwpERDVQeEtqcjI5QmJFNHhOQWM5ZG51M2FvMWNGNUZJNlR1MHJPajRFeWcwQ0laUmVuUDV3NFZuL3FhUHBsLzBzCmY1aW5YK2syNDdTaUNSV29wV0twMllIand3Nm43UUlLVHNNUGJSZVlNRzFvSHdJREFRQUJveU13SVRBT0JnTlYKSFE4QkFmOEVCQU1DQWdRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQQppM0dDTUI2U3NXdVY0TWlNSmhjQUt5YUdueDJiNUhZZmZlVitscWFZd3ZiaWovamt6T3lYV1Y3d3NoOEdzUi9NCldKQ2pia1JQWXZGZEhXbFNxOFc4NWVQWHJLUnVITTVTN2lxbmFnd25xanVUbnJiK0VTTVVkcS9BTlBGODJhaTUKU0RBL0EvczJRL2FRNU1YdWp0UjVvT3ZUSmxHV0hVbTQ3TFRSUDNkU3Nvdk5LTmpyYlY4ZWlDMTZtb2FiaHZwRApyaWw4Wlc5WnB5ZlJFbmFLNXZPbDBhYWo1am9JNDhuR0hkV0hMbmpyV3ZFc3lFYkFSdkVQemRMWlVPcnpvbGk1Cml4R1YyR0FoNEY3NEhIM0kxdDE3UTVpL3BQNmpCeWxiSUpaMDBkWUlpSlQ4aFpxc0xFcTZCbUZ3ZUZENXdLZEMKSE15cFAvaDRCZDJFREJxYU5xUWhLdz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+        server: https://35.193.151.235
+      name: id-cd
+    contexts:
+    - context:
+        cluster: id-cd
+        namespace: default
+        user: staging-admin
+      name: staging
+    current-context: staging
+    kind: Config
+    preferences: {}
+    users:
+    - name: staging-admin
+      user:
+        password: fJrsRVDUyagmRjiy
+        username: admin
