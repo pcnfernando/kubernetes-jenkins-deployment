@@ -18,12 +18,12 @@
 #         - name: WSO2_USERNAME
 #           valueFrom:
 #             secretKeyRef:
-#               name: wso2-credentials
+#               name: siddhi-credentials
 #               key: username
 #         - name: WSO2_PASSWORD
 #           valueFrom:
 #             secretKeyRef:
-#               name: wso2-credentials
+#               name: siddhi-credentials
 #               key: password
 #         - name: REGISTRY_SERVER
 #           valueFrom:

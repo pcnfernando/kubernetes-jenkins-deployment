@@ -21,7 +21,7 @@ data:
     unclassified:
       globalLibraries:
         libraries:
-          - name: "wso2-jenkins-shared-lib"
+          - name: "siddhi-jenkins-shared-lib"
             defaultVersion: master
             retriever:
               modernSCM:
@@ -38,7 +38,7 @@ data:
                   username: ${GITHUB_USERNAME}
                   password: ${GITHUB_PASSWORD}
     jenkins:
-      systemMessage: "WSO2 CI/CD Setup"
+      systemMessage: "Siddhi CI/CD Setup"
       securityRealm:
         local:
           allowsSignup: false
@@ -78,11 +78,11 @@ data:
                   date +\"%Y%m%d%H%M%S\"
                 }
 
-                # Set WSO2 Base Image
-                sed -i "s|<BASE>|{{ $image.wso2Image }}|" Dockerfile
+                # Set Siddhi Base Image
+                sed -i "s|<BASE>|{{ $image.siddhiImage }}|" Dockerfile
 
                 IMAGE_NAME={{ $image.organization }}/{{ $image.repository }}:`timestamp`
-                docker login docker.wso2.com -u \$WSO2_USERNAME -p \$WSO2_PASSWORD
+                docker login https://hub.docker.com/ -u \$SIDDHI_USERNAME -p \$SIDDHI_PASSWORD
                 docker build -t \$IMAGE_NAME .
                 docker login -u \$REGISTRY_USERNAME -p \$REGISTRY_PASSWORD
                 docker push \$IMAGE_NAME""")
@@ -113,7 +113,7 @@ data:
                 if [ -z "\$TAG" ]
                 then
                   TAG=`date +\"%Y%m%d%H%M%S\"`
-                  sed -i "s|<BASE>|{{ $image.wso2Image }}|" Dockerfile
+                  sed -i "s|<BASE>|{{ $image.siddhiImage }}|" Dockerfile
                 else
                   sed -i "s|<BASE>|{{ $image.organization }}/{{ $image.repository }}:\$TAG|" Dockerfile
                 fi
@@ -193,7 +193,7 @@ data:
               {{- if .chart.customChart }}
               helm package {{ .chart.name }} -u
               {{- else }}
-              helm fetch wso2/{{ .chart.name }} --version {{ .chart.version }}
+              helm fetch siddhi/{{ .chart.name }} --version {{ .chart.version }}
               {{- end }}
 
               tar -zxf {{ .chart.name }}-*.tgz

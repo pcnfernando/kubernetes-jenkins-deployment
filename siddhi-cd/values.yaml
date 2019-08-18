@@ -1,7 +1,7 @@
 namespace: jenkins
 image: 'aaquiff/jenkins-docker-kube:latest'
-wso2Username: <WSO2_SUBSCRIPTION_USERNAME>
-wso2Password: <WSO2_SUBSCRIPTION_PASSWORD>
+SiddhiUsername: <SIDDHI_SUBSCRIPTION_USERNAME>
+SiddhiPassword: <SIDDHI_SUBSCRIPTION_PASSWORD>
 
 # Admin credentials of jenkins instance to be created
 jenkins:
@@ -20,20 +20,19 @@ github:
   password: <GITHUB_PASSWORD>
 
 # applications:
-#   - name: 
-#     email: <WSO2_USERNAME>
+#   - name: Siddhiei
+#     email: <Siddhi_USERNAME>
 #     testScript:
 #       path: tests
 #       command: test.sh
 #     chart:
-#       customChart: true
-#       name: 
-#       repo: 
+#       name: scalable-integrator
+#       repo: 'https://github.com/Aaquiff/ei-cd'
 #     images:
-#       - wso2Image:
-#         organization:
-#         repository:
-#         gitRepo:
+#       - SiddhiImage: 'docker.Siddhi.com/Siddhiei-integrator:6.4.0'
+#         organization: aaquiff
+#         repository: Siddhiei-6.4.0
+#         gitRepo: 'https://github.com/Aaquiff/docker-ei'
 
 # Values for Spinnaker chart
 spinnaker:
@@ -81,10 +80,3 @@ spinnaker:
      - secretName: -tls
        hosts:
          - domain.com
-
-elastic-stack:
-  kibana:
-    ingress:
-      enabled: true
-      hosts:
-        - kibana

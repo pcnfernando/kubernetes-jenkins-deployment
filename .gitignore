@@ -1,6 +1,6 @@
 #charts
-wso2-cd/charts
-wso2-cd/values-edited.yaml
-wso2-cd/requirements.lock
+siddhi-cd/charts
+siddhi-cd/values-edited.yaml
+siddhi-cd/requirements.lock
 test.sh
 temp

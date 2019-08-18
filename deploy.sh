@@ -47,9 +47,9 @@ then
     err_exit "Please install Kubernetes HELM and initialize the cluster with tiller before you start the setup\n"
 fi
 
-mkdir Siddhi-cd
+mkdir -p siddhi-cd
 
-cat > Siddhi-cd/requirements.yaml << "EOF"
+cat > siddhi-cd/requirements.yaml << "EOF"
 dependencies:
 - name: spinnaker
   version: 1.8.1
@@ -60,19 +60,19 @@ dependencies:
   repository: https://kubernetes-charts.storage.googleapis.com
 EOF
 
-cat > Siddhi-cd/Chart.yaml << "EOF"
+cat > siddhi-cd/Chart.yaml << "EOF"
 apiVersion: v1
 appVersion: "1.0"
 description: Jenkins chart for CI/CD pipeline
-name: Siddhi-cd
+name: siddhi-cd
 version: 0.1.0
 EOF
 
-mkdir Siddhi-cd/charts
+mkdir -p siddhi-cd/charts
 
-mkdir Siddhi-cd/templates
+mkdir -p siddhi-cd/templates
 
-cat > Siddhi-cd/templates/deployment.yaml << "EOF"
+cat > siddhi-cd/templates/deployment.yaml << "EOF"
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -103,7 +103,7 @@ spec:
         env:
         - name: JAVA_OPTS
           value: "-Djenkins.install.runSetupWizard=false"
-        - name: Siddhi_USERNAME
+        - name: SIDDHI_USERNAME
           valueFrom:
             secretKeyRef:
               name: Siddhi-credentials
@@ -186,7 +186,7 @@ spec:
         emptyDir: {}
 EOF
 
-cat > Siddhi-cd/templates/kube-conf.yaml << "EOF"
+cat > siddhi-cd/templates/kube-conf.yaml << "EOF"
 # Copyright (c) 2018, Siddhi Inc. (http://www.Siddhi.org) All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -230,7 +230,7 @@ stringData:
         username: admin
 EOF
 
-cat > Siddhi-cd/templates/spinnaker-pipeline-creator.yaml << "EOF"
+cat > siddhi-cd/templates/spinnaker-pipeline-creator.yaml << "EOF"
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -886,7 +886,7 @@ data:
   {{- end }}
 EOF
 
-cat > Siddhi-cd/templates/NOTES.txt << "EOF"
+cat > siddhi-cd/templates/NOTES.txt << "EOF"
 1. You will need a port forwarding tunnel in order to access the Jenkins UI:
     export JENKINS_POD=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app=jenkins" -o jsonpath="{.items[0].metadata.name}")
     kubectl port-forward --namespace {{ .Release.Namespace }} $JENKINS_POD 8080
@@ -899,7 +899,7 @@ cat > Siddhi-cd/templates/NOTES.txt << "EOF"
     kubectl port-forward --namespace {{ .Release.Namespace }} $GATE_POD 8084
 EOF
 
-cat > Siddhi-cd/templates/jenkins-casc-conf.yaml << "EOF"
+cat > siddhi-cd/templates/jenkins-casc-conf.yaml << "EOF"
 # Copyright (c) 2018, Siddhi Inc. (http://www.Siddhi.org) All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -981,7 +981,7 @@ data:
                 }
 
                 IMAGE_NAME={{ $image.organization }}/{{ $image.repository }}:`timestamp`
-                docker login docker.Siddhi.com -u \$Siddhi_USERNAME -p \$Siddhi_PASSWORD
+                docker login hub.docker.com -u \$SIDDHI_USERNAME -p \$SIDDHI_PASSWORD
                 docker build -t \$IMAGE_NAME .
                 docker login -u \$REGISTRY_USERNAME -p \$REGISTRY_PASSWORD
                 docker push \$IMAGE_NAME""")
@@ -1060,7 +1060,7 @@ data:
       {{- end }}
 EOF
 
-cat > Siddhi-cd/templates/roles.yaml << "EOF"
+cat > siddhi-cd/templates/roles.yaml << "EOF"
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -1084,7 +1084,7 @@ subjects:
   namespace: {{ .Release.Namespace }}
 EOF
 
-cat > Siddhi-cd/templates/secrets.yaml << "EOF"
+cat > siddhi-cd/templates/secrets.yaml << "EOF"
 apiVersion: v1
 kind: Secret
 metadata:
@@ -1119,7 +1119,7 @@ data:
   password: {{ .Values.SiddhiPassword | b64enc }}
 EOF
 
-cat > Siddhi-cd/templates/spinnaker-jenkins-job-configurator.yaml << "EOF"
+cat > siddhi-cd/templates/spinnaker-jenkins-job-configurator.yaml << "EOF"
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -1324,7 +1324,7 @@ data:
     </project>
 EOF
 
-cat > Siddhi-cd/templates/service.yaml << "EOF"
+cat > siddhi-cd/templates/service.yaml << "EOF"
 apiVersion: v1
 kind: Service
 metadata:
@@ -1360,7 +1360,7 @@ spec:
           servicePort: 8080
 EOF
 
-cat > Siddhi-cd/templates/_helpers.tpl << "EOF"
+cat > siddhi-cd/templates/_helpers.tpl << "EOF"
 {{/* vim: set filetype=mustache: */}}
 {{/*
 Expand the name of the chart.
@@ -1395,7 +1395,7 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 EOF
 
-cat > Siddhi-cd/templates/volumes.yaml << "EOF"
+cat > siddhi-cd/templates/volumes.yaml << "EOF"
 # kind: PersistentVolume
 # apiVersion: v1
 # metadata:
@@ -1442,11 +1442,11 @@ spec:
       storage: 10Gi
 EOF
 
-cat > Siddhi-cd/values.yaml << "EOF"
+cat > siddhi-cd/values.yaml << "EOF"
 namespace: jenkins
 image: 'aaquiff/jenkins-docker-kube:latest'
-SiddhiUsername: <Siddhi_SUBSCRIPTION_USERNAME>
-SiddhiPassword: <Siddhi_SUBSCRIPTION_PASSWORD>
+SiddhiUsername: <SIDDHI_SUBSCRIPTION_USERNAME>
+SiddhiPassword: <SIDDHI_SUBSCRIPTION_PASSWORD>
 
 # Admin credentials of jenkins instance to be created
 jenkins:
@@ -1466,7 +1466,7 @@ github:
 
 # applications:
 #   - name: Siddhiei
-#     email: <Siddhi_USERNAME>
+#     email: <SIDDHI_USERNAME>
 #     testScript:
 #       path: tests
 #       command: test.sh
@@ -1527,7 +1527,7 @@ spinnaker:
          - domain.com
 EOF
 
-cat > Siddhi-cd/requirements.lock << "EOF"
+cat > siddhi-cd/requirements.lock << "EOF"
 dependencies:
 - name: spinnaker
   repository: https://kubernetes-charts.storage.googleapis.com
@@ -1557,12 +1557,12 @@ applications:
 EOF
 
 replaceTag() {
-    sed -i '' "s|$1|$2|" Siddhi-cd/values.yaml
+    sed -i '' "s|$1|$2|" siddhi-cd/values.yaml
 }
 
 if [ "$1" != "" ]; then
-  Siddhi_SUBSCRIPTION_USERNAME=$1
-  Siddhi_SUBSCRIPTION_PASSWORD=$2
+  SIDDHI_SUBSCRIPTION_USERNAME=$1
+  SIDDHI_SUBSCRIPTION_PASSWORD=$2
   REGISTRY_USERNAME=$3
   REGISTRY_PASSWORD=$4
   REGISTRY_EMAIL=$5
@@ -1572,8 +1572,8 @@ if [ "$1" != "" ]; then
   GITHUB_PASSWORD=$9
 else
   print_notice "Siddhi Subscription credentials"
-  read -p "Enter Your Siddhi Username: " Siddhi_SUBSCRIPTION_USERNAME
-  read -s -p "Enter Your Siddhi Password: " Siddhi_SUBSCRIPTION_PASSWORD
+  read -p "Enter Your Siddhi Username: " SIDDHI_SUBSCRIPTION_USERNAME
+  read -s -p "Enter Your Siddhi Password: " SIDDHI_SUBSCRIPTION_PASSWORD
   ${ECHO}
   print_notice "Docker registry credentials"
 
@@ -1593,8 +1593,8 @@ else
   ${ECHO}
 fi
 
-replaceTag "<Siddhi_SUBSCRIPTION_USERNAME>" "$Siddhi_SUBSCRIPTION_USERNAME"
-replaceTag "<Siddhi_SUBSCRIPTION_PASSWORD>" "$Siddhi_SUBSCRIPTION_PASSWORD"
+replaceTag "<SIDDHI_SUBSCRIPTION_USERNAME>" "$SIDDHI_SUBSCRIPTION_USERNAME"
+replaceTag "<SIDDHI_SUBSCRIPTION_PASSWORD>" "$SIDDHI_SUBSCRIPTION_PASSWORD"
 replaceTag "<REGISTRY_USERNAME>" "$REGISTRY_USERNAME"
 replaceTag "<REGISTRY_PASSWORD>" "$REGISTRY_PASSWORD"
 replaceTag "<REGISTRY_EMAIL>" "$REGISTRY_EMAIL"
@@ -1626,7 +1626,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
       sed "s|$1|$2|"
   }
 
-  echo "" >> Siddhi-cd/values.yaml
+  echo "" >> siddhi-cd/values.yaml
   cat app.yaml |
   replaceValues APP_NAME $APP_NAME |
   replaceValues TEST_PATH $TEST_PATH |
@@ -1637,28 +1637,28 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
   replaceValues ORGANIZATION $ORGANIZATION |
   replaceValues REPOSITORY $REPOSITORY |
   replaceValues GIT_REPO $GIT_REPO |
-  replaceValues EMAIL $Siddhi_SUBSCRIPTION_USERNAME >> Siddhi-cd/values.yaml
+  replaceValues EMAIL $SIDDHI_SUBSCRIPTION_USERNAME >> siddhi-cd/values.yaml
 
   DATA="- $ORGANIZATION/$REPOSITORY"
-  cat Siddhi-cd/values.yaml | sed "s|<REPOSITORIES>|${DATA}<REPOSITORIES>|" |
+  cat siddhi-cd/values.yaml | sed "s|<REPOSITORIES>|${DATA}<REPOSITORIES>|" |
   sed 's|<REPOSITORIES>|\
-          <REPOSITORIES>|g' > Siddhi-cd/values2.yaml
-  rm Siddhi-cd/values.yaml
-  mv Siddhi-cd/values2.yaml Siddhi-cd/values.yaml
+          <REPOSITORIES>|g' > siddhi-cd/values2.yaml
+  rm siddhi-cd/values.yaml
+  mv siddhi-cd/values2.yaml siddhi-cd/values.yaml
 
 fi
 
 replaceTag "<REPOSITORIES>" ""
 
-print_notice "Siddhi-cd/values.yaml created"
+print_notice "siddhi-cd/values.yaml created"
 
-cd Siddhi-cd
+cd siddhi-cd
 
 
 print_notice "Building chart dependencies..."
 helm dependency build
 
 print_notice "Deploying the helm chart..."
-# helm upgrade Siddhi-cd . -f values.yaml --install --namespace Siddhi-cd
+# helm upgrade siddhi-cd . -f values.yaml --install --namespace siddhi-cd
 
 print_notice "Siddhi CI/CD chart generated and deployed. Further changes could be made by upgrading the helm deployment."

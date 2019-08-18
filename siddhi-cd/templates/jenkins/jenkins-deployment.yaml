@@ -18,7 +18,7 @@ spec:
       - image: alpine/helm:2.14.0
         name: helm-config
         command: ["/bin/sh"]
-        args: ["-c", "helm init --client-only; helm repo remove local; helm repo add wso2 https://helm.wso2.com; helm repo update"]
+        args: ["-c", "helm init --client-only; helm repo remove local; helm repo add siddhi https://helm.siddhi.com; helm repo update"]
         volumeMounts:
         - name: helm-conf
           mountPath: "/root/.helm"
@@ -28,15 +28,15 @@ spec:
         env:
         - name: JAVA_OPTS
           value: "-Djenkins.install.runSetupWizard=false"
-        - name: WSO2_USERNAME
+        - name: SIDDHI_USERNAME
           valueFrom:
             secretKeyRef:
-              name: wso2-credentials
+              name: siddhi-credentials
               key: username
-        - name: WSO2_PASSWORD
+        - name: SIDDHI_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: wso2-credentials
+              name: siddhi-credentials
               key: password
         - name: REGISTRY_SERVER
           valueFrom:
@@ -84,8 +84,8 @@ spec:
           mountPath: /var/run/docker.sock
         - name: jenkins-persistent-storage
           mountPath: /var/jenkins_home
-        - name: wso2-credentials
-          mountPath: /wso2creds
+        - name: siddhi-credentials
+          mountPath: /siddhicreds
         - name: jenkins-casc-conf
           mountPath: /var/casc_configs
         - name: helm-conf
@@ -101,9 +101,9 @@ spec:
       - name: jenkins-persistent-storage
         persistentVolumeClaim:
           claimName: jenkins-claim
-      - name: wso2-credentials
+      - name: siddhi-credentials
         secret:
-          secretName: wso2-credentials
+          secretName: siddhi-credentials
       - name: jenkins-casc-conf
         configMap:
           name: jenkins-casc-conf

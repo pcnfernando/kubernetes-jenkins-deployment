@@ -76,7 +76,7 @@ applications:
       name: CHART_NAME
       repo: 'CHART_REPO'
     images:
-      - siddhiImage: 'siddhi_IMAGE'
+      - siddhiImage: 'SIDDHI_IMAGE'
         organization: ORGANIZATION
         repository: REPOSITORY
         gitRepo: 'GIT_REPO'
@@ -91,8 +91,8 @@ replaceTag() {
 }
 
 if [ "$1" != "" ]; then
-  siddhi_SUBSCRIPTION_USERNAME=$1
-  siddhi_SUBSCRIPTION_PASSWORD=$2
+  SIDDHI_SUBSCRIPTION_USERNAME=$1
+  SIDDHI_SUBSCRIPTION_PASSWORD=$2
   REGISTRY_USERNAME=$3
   REGISTRY_PASSWORD=$4
   REGISTRY_EMAIL=$5
@@ -156,7 +156,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
       sed "s|$1|$2|"
   }
 
-  echo "" >> Siddhi-cd/values.yaml
+  echo "" >> siddhi-cd/values.yaml
   cat app.yaml |
   replaceValues APP_NAME $APP_NAME |
   replaceValues TEST_PATH $TEST_PATH |
@@ -167,29 +167,29 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
   replaceValues ORGANIZATION $ORGANIZATION |
   replaceValues REPOSITORY $REPOSITORY |
   replaceValues GIT_REPO $GIT_REPO |
-  replaceValues EMAIL $Siddhi_SUBSCRIPTION_USERNAME >> Siddhi-cd/values.yaml
+  replaceValues EMAIL $Siddhi_SUBSCRIPTION_USERNAME >> siddhi-cd/values.yaml
 
   DATA="- $ORGANIZATION/$REPOSITORY"
-  cat Siddhi-cd/values.yaml | sed "s|<REPOSITORIES>|${DATA}<REPOSITORIES>|" |
+  cat siddhi-cd/values.yaml | sed "s|<REPOSITORIES>|${DATA}<REPOSITORIES>|" |
   sed 's|<REPOSITORIES>|\
-          <REPOSITORIES>|g' > Siddhi-cd/values2.yaml
-  rm Siddhi-cd/values.yaml
-  mv Siddhi-cd/values2.yaml Siddhi-cd/values.yaml
+          <REPOSITORIES>|g' > siddhi-cd/values2.yaml
+  rm siddhi-cd/values.yaml
+  mv siddhi-cd/values2.yaml siddhi-cd/values.yaml
 
 fi
 
 replaceTag "<REPOSITORIES>" ""
 
-print_notice "Siddhi-cd/values.yaml created"
+print_notice "siddhi-cd/values.yaml created"
 
-cd Siddhi-cd
+cd siddhi-cd
 
 
 print_notice "Building chart dependencies..."
 helm dependency build
 
 print_notice "Deploying the helm chart..."
-# helm upgrade Siddhi-cd . -f values.yaml --install --namespace Siddhi-cd
+# helm upgrade siddhi-cd . -f values.yaml --install --namespace siddhi-cd
 
-print_notice "Siddhi CI/CD chart generated and deployed. Further changes could be made by modifying the chart Siddhi-cd and upgrading."
+print_notice "Siddhi CI/CD chart generated and deployed. Further changes could be made by modifying the chart siddhi-cd and upgrading."
 EOF
