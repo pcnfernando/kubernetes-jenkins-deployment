@@ -1557,7 +1557,7 @@ applications:
 EOF
 
 replaceTag() {
-    sed -i '' "s|$1|$2|" siddhi-cd/values.yaml
+    sed -i "s|$1|$2|g" siddhi-cd/values.yaml
 }
 
 if [ "$1" != "" ]; then
